@@ -46,85 +46,105 @@ AccountService.delete = async (idAccount) => {
     //Busco la cuenta
     const accountFound = await AccountRepository.findById(idAccount)
 //Verifico si existe
-    if(accountFound.length < 0) {
+    if(accountFound.length === 0) {
         throw new Error('Account does not exist')
+    }else{
+        //compruebo si la cuenta tiene saldo
+        if(accountFound[0].amount > 0){
+            throw new Error('Account with amount, can not be deleted')
+        }else{
+        // Elimino si no tiene saldo
+            await AccountRepository.delete(idAccount)
+        }
     }
-//compruebo si la cuenta tiene saldo
-    if(accountFound.amount > 0){
-        throw new Error('Account with amount, can not be deleted')
-    }
-// Elimino si no tiene saldo
-    await AccountRepository.delete(idAccount)
+
 }
 
-//REVISAR TRAER CUENTA
-/*AccountService.getAccount = async (customerid) => {
+//TRAER CUENTA
+AccountService.getAccount = async (customerid, accountId) => {
 
-const accountFound = await AccountRepository.listAccountsByCustomer(customerid)
+const accountsFound = await AccountRepository.listAccountsByCustomer(customerid)
 
 //Busco en la lista de cuentas el id que sea igual al id de la cuenta que voy a retirar
 // si existe la guardo en accountFound de lo contrario retornar un null
-for(i = 0; i < accountFound.length(); i++) {
-    //if (accountFound.get(i).getId().equals(customerid.getId())) {
-        accountFound = cuentas.get(i);
+
+let accountFound = null
+
+for(i = 0; i < accountsFound.length; i++) {
+    if (accountsFound[i].id === accountId) {
+        accountFound = accountsFound[i];
     }
-    if (accountFound == null) {
-    throw new Error("account does not exist");
-    }
-return accountFound;
 }
-
-//Comprobar si cuenta tiene saldo
-AccountService.accountWithAmount = async (idAccount.amount) {
-
-    if(idAccount./*algo para traerla*/ //- amount < 0){
-/*return false;
-    }else{
-        return true;
+         if (accountFound == null) {
+            throw new Error("Account does not exist:" + " " + accountId);
     }
-//}
+        return accountFound;
+    
+}
 
 //RETIRAR DINERO
-AccountService.withdraw = async (idAccount) => {
+AccountService.withdraw = async (accountId, customerId, withdrawMoney) => {
     //Traigo la cuenta
     //Compruebo que exista
-    const accountBD = this.getAccount(idAccount)
+    const accountBD = await this.getAccount(customerId, accountId)
+    
     //Resto lo que habia con lo que voy a retirar
+    let moneyAccount = accountBD.amount
+    let withdrawlResult = moneyAccount - withdrawMoney
 
-    const moneyAccount = idAccount
-    const wthdrawlMoney = //que pongo para retirar?
-    const withdrawlResult = moneyAccount - withdrawlMoney
     //compruebo que alcance el saldo
-    if(this.accountWithAmount == false){
+    if(withdrawlResult < 0){
         throw new Error('Account have not balance')
-    }
+    }else{
+        accountBD.amount = withdrawlResult
     //Realizo el retiro
-    await AccountRepository.withdrawAmount(idAccount)
+    await AccountRepository.withdrawAmount(accountBD)
+    }
 }
 
+
 //CONSIGNAR DINERO
-AccountService.consignation = async (idAccount) => {
+AccountService.consignation = async (accountId, customerId, consignMoney) => {
     //Traigo la cuenta
     //Compruebo que exista
-    const accountBD = this.getAccount(idAccount)
-    //Resto lo que habia con lo que voy a retirar
+    const accountBD = await this.getAccount(customerId, accountId)
 
-    const moneyAccount = idAccount//dinero en la cuenta
-    const consignationMoney = //que pongo para retirar?
-    const withdrawlResult = moneyAccount + consignationMoney
+    //Sumo el valor que tengo en la cuenta con lo que voy a consignar
+    let moneyAccount = accountBD.amount
+    let consignmentResult = moneyAccount + consignMoney
 
+    accountBD.amount =consignmentResult
     //Realizo la consignacion
-    await AccountRepository.consignationAmount(idAccount)
+    await AccountRepository.consignationAmount(accountBD)
 }
 
 //TRANSFERENCIA ENTRE CUENTAS
 
-AccountService.transaction = async (idAccount) => {
-    //Traer las cuentas? como traigo las dos cuentas
+AccountService.transactionAccounts = async (data) => {
+    //Traer las cuentas
     //validar que ambas cuentas existan
+    const accountRoot = await this.getAccount(data.customerIdOrigen, data.cuentaOrigen)
+    const accountDestination = await this.getAccount(data.customerIdDestino, data.cuentaDestino)
+    
     //comprobar que la cuenta origen tenga saldo
-    //guardar el retiro
-    //guardar consignacion
+    let moneyAccountRoot = accountRoot.amount
+    let withdrawlResult = moneyAccountRoot - data.amountTransaction
 
+    //compruebo que alcance el saldo
+    if(withdrawlResult < 0){
+        throw new Error('Root account have not balance')
+    }else{
+        accountRoot.amount = withdrawlResult
+    //guardar el retiro de cuenta origen
+    await AccountRepository.consignationAmount(accountRoot)
 
-}*/
+    //Realizar consignacion
+    let moneyAccount = accountDestination.amount
+    let consignmentResult = moneyAccount + data.amountTransaction
+
+    accountDestination.amount =consignmentResult
+    //Realizo la consignacion
+    await AccountRepository.consignationAmount(accountDestination)
+
+    }
+}

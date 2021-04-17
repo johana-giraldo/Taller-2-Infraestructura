@@ -47,3 +47,51 @@ AccountController.deleteAccount = async(req, res, next) => {
 
     }
  }
+
+ AccountController.withdrawCash = async(req, res, next) => {
+    const body = req.body;
+
+    try{
+        await AccountService.withdraw(body.id, body.customerId, body.amount)
+
+        res.send({message: 'Withdrawal successful'})
+
+    }catch(error) {
+        console.log({error});
+        res.status(500).send({error: error.message}).end();
+        next(error);
+
+    }
+ }
+
+ AccountController.consignationCash = async(req, res, next) => {
+    const body = req.body;
+
+    try{
+        await AccountService.consignation(body.id, body.customerId, body.amount)
+
+        res.send({message: 'successful consignments'})
+
+    }catch(error) {
+        console.log({error});
+        res.status(500).send({error: error.message}).end();
+        next(error);
+
+    }
+ }
+
+ AccountController.transaction = async(req, res, next) => {
+    const body = req.body;
+
+    try{
+        await AccountService.transactionAccounts(body)
+
+        res.send({message: 'successful transaction'})
+
+    }catch(error) {
+        console.log({error});
+        res.status(500).send({error: error.message}).end();
+        next(error);
+
+    }
+ }

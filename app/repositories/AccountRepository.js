@@ -17,9 +17,13 @@ AccountRepository.findById = (id) => {
     return DB('accounts').where({ id: id }).select('*')
 }
 
-AccountRepository.withdrawAmount = (id) => {
-    return DB ('accounts').where({ id: id}).withdraw(amount)//poner algo que signifique retirar
+AccountRepository.withdrawAmount = (account) => {
+    return DB ('accounts').where({ id: account.id}).update(account)
 }
-AccountRepository.consignationAmount = (id) => {
-    return DB ('accounts').where({ id: id}).consignation(amount)//poner algo que signifique consignar
+AccountRepository.consignationAmount = (account) => {
+    return DB ('accounts').where({ id: account.id}).update(account)
+}
+
+AccountRepository.transactionBetweenAccounts = (account) => {
+    return DB ('accounts').where({ id: account.id}).update(account)
 }
